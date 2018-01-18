@@ -5,12 +5,12 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
-  <link rel="dns-prefetch" href="http://yoursite.com">
+  <link rel="dns-prefetch" href="http://myairforce1.github.io">
   <title>Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta property="og:type" content="website">
 <meta property="og:title" content="Hexo">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta property="og:url" content="http://myairforce1.github.io/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Hexo">
@@ -189,6 +189,107 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-使用Python-scipy做统计检验-Student-t-test" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/01/18/使用Python-scipy做统计检验-Student-t-test/">使用Python scipy做统计检验--Student t-test</a>
+    </h1>
+  
+
+        
+        <a href="/2018/01/18/使用Python-scipy做统计检验-Student-t-test/" class="archive-article-date">
+  	<time datetime="2018-01-18T07:05:13.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-01-18</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>我们使用下面的一个简单的例子来熟悉Student t检验的方法。</p>
+<blockquote>
+<p>在10块地上同时种植甲乙两种作物，其产量服从正态分布，并且方差相同。结果计算得$\overline{x}=30.97, \overline{y}=21.79, S_x = 26.7, S_y = 12.1$。试问这两种作物的产量有无明显差异？</p>
+</blockquote>
+<p>这是一个典型的双样本，正态同方差的假设检验，判断两个正态分布的期望是否相同。$H_0: \mu_1 = \mu_2, H_1: \mu_1 \neq \mu_2$。</p>
+<h3 id="使用scipy直接做假设检验"><a href="#使用scipy直接做假设检验" class="headerlink" title="使用scipy直接做假设检验"></a>使用scipy直接做假设检验</h3><p>Scipy提供了两个方法解决双样本同方差的Student t-test问题：</p>
+<ol>
+<li>scipy.stats.ttest_ind</li>
+<li>scipy.stats.ttest_ind_from_stats<br>第一个方法要求输入原始样本数据，第二个方法直接输入样本的描述统计量（均值，标准差，样本数）即可。那么这里我们直接使用第二方法。</li>
+</ol>
+<p>需要注意的是，Scipy.stats库函数要求输入的样本标准差是总体标准差的无偏统计量，也就是我们常说的“修正样本方差”和“修正样本标准差”。<br>$$ S^2 = \frac{1}{n}\Sigma_{i=1}^{n}(x_i-\overline{x})^2\tag{1} $$</p>
+<p>修正样本方差定义为:<br>$$<br> \hat{S^2}=\frac{1}{n-1}\Sigma_{i=1}^{n}(x_i-\overline{x})^2  \tag{2}<br>$$<br>所以修正样本标准差和原始样本的标准差的关系是：<br>$$<br>S = \sqrt{\frac{n-1}{n}\hat{s}} \tag{3}<br>$$</p>
+<p>Python程序如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># two sample student t test</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">from</span> scipy <span class="keyword">import</span> stats</span><br><span class="line"></span><br><span class="line">mean1 = <span class="number">30.97</span></span><br><span class="line">mean2 = <span class="number">21.79</span></span><br><span class="line"></span><br><span class="line">std1 = <span class="number">26.7</span></span><br><span class="line">std2 = <span class="number">12.1</span></span><br><span class="line"></span><br><span class="line">nobs1 = <span class="number">10</span></span><br><span class="line">nobs2 = <span class="number">10</span></span><br><span class="line"></span><br><span class="line">modified_std1 = np.sqrt(np.float32(nobs1)/np.float32(nobs1<span class="number">-1</span>)) * std1</span><br><span class="line">modified_std2 = np.sqrt(np.float32(nobs2)/np.float32(nobs2<span class="number">-1</span>)) * std2</span><br><span class="line"></span><br><span class="line">(statistic, pvalue) = stats.ttest_ind_from_stats(mean1=mean1, std1=modified_std1, nobs1=<span class="number">10</span>, mean2=mean2, std2=modified_std2, nobs2=<span class="number">10</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span> <span class="string">"t statistic is: "</span>, statistic</span><br><span class="line"><span class="keyword">print</span> <span class="string">"pvalue is: "</span>, pvalue</span><br></pre></td></tr></table></figure></p>
+<p>得到结果:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">t statistic is:  0.939488657335</span><br><span class="line">pvalue is:  0.359917216785</span><br></pre></td></tr></table></figure>
+<p>假设我们显著性水平$\alpha=0.05$，pvalue显著的大于0.05，所以我们不能拒绝原假设，也就是认为两种作物的产量没有显著差异。</p>
+<h3 id="手工推导进行t分布假设检验"><a href="#手工推导进行t分布假设检验" class="headerlink" title="手工推导进行t分布假设检验"></a>手工推导进行t分布假设检验</h3><p>下面，为了进一步熟悉student t-test的统计量，我们手工来推导一下检验结果，不使用scipy提供的ttest_ind_from_stats的现成方法。</p>
+<p>假设两个总体X, Y,  $ X \sim N(a_1, \sigma^2), Y \sim N(a_2, \sigma^2)$。因为本例子中两种作物总体的方差是相同的，所以统一使用$\sigma$表示。m, n分别是X, Y的样本数.</p>
+<p>$$\overline{x} = \frac{1}{m}\Sigma_{1}^{m}x<em>i,\qquad \overline{y}=\frac{1}{n}\Sigma</em>{1}^{n}y_i$$</p>
+<p>$$S<em>1^2=\frac{1}{m}\Sigma</em>{i=1}^{m}(x_i-\overline{x})^2,\qquadS<em>2^2=\frac{1}{n}\Sigma</em>{i=1}^{n}(y_i-overline{y})^2 \tag{4}$$</p>
+<p>通过抽样分布定理我们可以构造t分布统计量<br>$$T=\frac{\overline{x}-\overline{y}-(a_1-a_2)}{\sqrt{mS_1^2+nS_2^2}}\sqrt{\frac{mn(m+n-2)}{m+n}} \sim t(m+n-2) \tag{5}$$<br>注意这个统计量里的方差不是样本的修正方差，它是总体方差$\sigma^2$的有偏估计量。这个公式的得来如果不清楚的同学，可以查看一下数理统计的教材，正态分布的导出分布一节都会有讲述，基本思路是用标准正态变量除去一个$\chi^2$分布变量来构造t分布统计量。</p>
+<p>有了（5）式我们就可以自己计算t值了。这里m=n=10:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">t = 3*(mean1 - mean2) / np.sqrt(std1**2 + std2**2)</span><br><span class="line">print &quot;t is: &quot;, t</span><br><span class="line"></span><br><span class="line">t is:  0.939488633311</span><br></pre></td></tr></table></figure>
+<p>可以看到t值和scipy给出的是一样的。接下来计算p-value。</p>
+<p>注意t-test是two-side的， 而这里，我们的mean1 是大于mean2的，所以这里的t值是右侧的，利用t分布函数算出的结果要被1减去后再乘以2才是p-value。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">print (1 - stats.t.cdf(t, 18))*2</span><br><span class="line"></span><br><span class="line">0.359917228781</span><br></pre></td></tr></table></figure>
+<p>这里我们又利用了scipy提供的t分布累积分布计算函数t.cdf。自由度10 + 10 - 2 = 18。</p>
+<p>得出来的p-value也和scipy计算的一致。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">Python, 概率统计</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/01/18/使用Python-scipy做统计检验-Student-t-test/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-利用中心极限定理生成正态随机数" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -282,7 +383,7 @@
 		toc_hide_index: true,
 		root: "/",
 		innerArchive: true,
-		showTags: false
+		showTags: true
 	}
 </script>
 
@@ -363,6 +464,10 @@ MathJax.Hub.Queue(function() {
             <input type="checkbox" q-on="click:toggleTag(e)" q-attr="checked:showTags">
           </label>
           <ul class="article-tag-list" q-show="showTags">
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">Python, 概率统计</a>
+              </li>
             
             <div class="clearfix"></div>
           </ul>
